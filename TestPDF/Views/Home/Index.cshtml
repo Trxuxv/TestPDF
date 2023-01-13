@@ -1,0 +1,176 @@
+﻿<div style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+    <div style=" width: 50%; height: 100%; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: space-evenly; align-items: center;">
+        <div id="editor" class="editor">
+            <div class="line-numbers">
+                <span></span>
+            </div>
+            <textarea maxlength="999999999" id="text-html" contenteditable="true">
+
+            </textarea>
+        </div>
+        <button style="width: 30%; padding: 1rem 5rem; margin-top: 1%;" onclick="Converter()">Atualizar</button>
+    </div>
+    <div style=" width: 50%; height: 100%; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: space-evenly; align-items: center;">
+        <div id="pdf-viewer">
+
+        </div>
+        <button style="width: 30%; padding: 1rem 5rem; margin-top: 1%;" onclick="ConvertPdf()">Converter PDF</button>
+    </div>
+</div>
+
+<style>
+    #pdf-viewer {
+        display: inline-flex;
+        gap: 10px;
+        width: 100%;
+        background: white;
+        height: 96%;
+        font-family: monospace;
+        line-height: 21px;
+        border-radius: 2px;
+        padding: 20px 10px;
+    }
+
+    .editor {
+        display: inline-flex;
+        width: 100%;
+        height: 96%;
+        font-family: monospace;
+        line-height: 21px;
+        background: #282a3a;
+        border-radius: 2px;
+        color: goldenrod;
+    }
+
+    textarea {
+        line-height: 21px;
+        overflow-y: scroll;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #282a3a;
+        outline: none;
+        resize: none;
+    }
+
+    .line-numbers {
+        width: 20px;
+        text-align: right;
+    }
+
+        .line-numbers span {
+            counter-increment: linenumber;
+        }
+
+            .line-numbers span::before {
+                content: counter(linenumber);
+                display: block;
+                color: #506882;
+            }
+
+    /* width */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+</style>
+
+<script>
+    //setInterval(() => {
+    //    Converter();
+    //}, 6000)
+
+    var editor = document.getElementById('editor');
+    var textarea = document.querySelector('textarea')
+    const lineNumbers = document.querySelector('.line-numbers')
+
+    textarea.addEventListener('keydown', function (event) {
+        if (event.keyCode == 9) {
+            event.preventDefault();
+            var s = this.selectionStart;
+            this.value = this.value.substring(0, this.selectionStart) + "\t" + this.value.substring(this.selectionEnd);
+            this.selectionEnd = s + 1;
+        }
+    });
+
+    textarea.addEventListener('keypress', function (e) {
+        const numberOfLines = e.target.value.split('\n').length
+
+        lineNumbers.innerHTML = Array(numberOfLines)
+            .fill('<span></span>')
+            .join('')
+    })
+
+    function Converter() {
+        var data = document.getElementById("text-html").value;
+        var pdfViewer = document.getElementById("pdf-viewer");
+
+        let csvContent = "data:text/html;charset=utf-8," + data; var encodedUri = encodeURI(csvContent);
+
+        var encodedUri = encodeURI(csvContent);
+
+        var link = document.createElement("a");
+
+        link.setAttribute("href", encodedUri);
+
+        var viewPage = `<iframe id="htmlToPdf" style="width: 100%; height: 100%;" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src=${encodedUri}> </iframe>`;
+
+        pdfViewer.innerHTML = viewPage
+    }
+
+    function ConvertPdf() {
+        var pdfViewer = document.getElementById("pdf-viewer");
+        var htmlToPdf = document.getElementById("htmlToPdf");
+        var myData = { "data": JSON.stringify(textarea.value) };
+        var value = textarea.value.toString();
+
+        $.ajax({
+            type: 'POST',
+            url: '/Home/Convert',
+            data: {
+                'html':"",
+            },
+            dataType: 'blob',
+            cache: false,
+            success: function (response) {
+                console.log(response)
+            },
+            error: function (error) {
+                alert('Ocorreu um erro inesperado. Por favor, tente novamente. Status = ' + error.status);
+            }
+        });
+
+
+        //var request = new XMLHttpRequest();
+        //request.open("POST", "/Home/Convert");
+        //request.responseType = "blob";
+        //request.onload = function () {
+        //    var msie = window.navigator.userAgent.indexOf("MSIE");
+        //    if (msie > 0) {
+        //        window.navigator.msSaveBlob(this.response, "myfile.pdf");
+        //    } else {
+        //        var url = window.URL.createObjectURL(this.response);
+        //        var viewPage = `<iframe id="htmlToPdf" style="width: 100%; height: 100%;" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src=${url}> </iframe>`;
+
+        //        pdfViewer.innerHTML = viewPage
+        //    }
+        //}
+        //request.send(myData);
+    }
+
+</script>
